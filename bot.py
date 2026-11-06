@@ -5,13 +5,15 @@ from yt_dlp import YoutubeDL
 TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
-# معرف قناتك العامة
-CHANNEL_USERNAME = "@HI709H"
+# رابط قناتك الخاص أو المعرف الرقمي الخاص بها
+# (ملاحظة: تأكد من إضافة البوت مشرفاً داخل القناة الخاصة ليتمكن من قراءة الأعضاء)
+CHANNEL_INVITE_LINK = "https://t.me/+KB8JInbcu405ZDg8"
+CHANNEL_TARGET = "@HI709H" # أو ضع الـ ID الرقمي مثل -100xxxxxxxxxx إذا وجدته
 
-# دالة التحقق من اشتراك المستخدم في القناة
 def check_subscription(user_id):
     try:
-        member = bot.get_chat_member(CHANNEL_USERNAME, user_id)
+        # فحص الاشتراك باستخدام المعرف أو اليوزر الحالي للقناة
+        member = bot.get_chat_member(CHANNEL_TARGET, user_id)
         if member.status in ['member', 'administrator', 'creator']:
             return True
     except Exception as e:
@@ -23,9 +25,14 @@ def send_welcome(message):
     user_id = message.from_user.id
     
     if not check_subscription(user_id):
-        bot.reply_to(
-            message, 
-            f"عذراً، لا يمكنك استخدام البوت إلا بعد الاشتراك في قناة البوت:\n{CHANNEL_USERNAME}\n\nبعد الاشتراك، أرسل /start مجدداً."
+        markup = telebot.types.InlineKeyboardMarkup()
+        btn = telebot.types.InlineKeyboardButton("اضغط هنا للاشتراك في القناة 🚀", url=CHANNEL_INVITE_LINK)
+        markup.add(btn)
+        
+        bot.send_message(
+            message.chat.id, 
+            "عذراً، لا يمكنك استخدام البوت إلا بعد الاشتراك في قناة البوت الرسمية.\n\nبعد الانضمام، أرسل /start مجدداً.",
+            reply_markup=markup
         )
         return
 
@@ -36,9 +43,14 @@ def download_media(message):
     user_id = message.from_user.id
     
     if not check_subscription(user_id):
-        bot.reply_to(
-            message, 
-            f"عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت:\n{CHANNEL_USERNAME}"
+        markup = telebot.types.InlineKeyboardMarkup()
+        btn = telebot.types.InlineKeyboardButton("اشترك في القناة للمتابعة 🚀", url=CHANNEL_INVITE_LINK)
+        markup.add(btn)
+        
+        bot.send_message(
+            message.chat.id, 
+            "عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت.",
+            reply_markup=markup
         )
         return
 
