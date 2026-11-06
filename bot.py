@@ -42,12 +42,6 @@ def download_media(message):
         'outtmpl': 'video.%(ext)s',
         'quiet': True,
         'nocheckcertificate': True,
-        'extractor_args': {
-            'tiktok': {
-                'app_version': ['30.4.0'],
-                'api_hostname': ['api16-normal-c-useast1a.tiktokv.com']
-            }
-        },
     }
 
     filename = None
@@ -60,27 +54,4 @@ def download_media(message):
             bot.send_video(message.chat.id, video)
 
     except Exception as e:
-        bot.reply_to(message, f"حدث خطأ أثناء التحميل: {e}")
-        
-    finally:
-        if filename and os.path.exists(filename):
-            try:
-                os.remove(filename)
-            except:
-                pass
-        
-        try:
-            bot.delete_message(message.chat.id, msg.message_id)
-        except:
-            pass
-
-@bot.callback_query_handler(func=lambda call: call.data == "check_sub")
-def callback_check(call):
-    bot.answer_callback_query(call.id, "تم التحقق بنجاح! يمكنك الآن إرسال الروابط وتحميلها.")
-    bot.edit_message_text(
-        chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text="أنت جاهز الآن! أرسل لي أي رابط (تيك توك، إنستجرام، يوتيوب) وسأقوم بتحميله لك فوراً."
-    )
-
-bot.infinity_polling()
+        bot.reply_to(message, f"حدث خطأ أثناء التحميل
