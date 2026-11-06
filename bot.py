@@ -1,6 +1,5 @@
 import os
 import telebot
-import requests
 from yt_dlp import YoutubeDL
 
 TOKEN = os.environ.get('BOT_TOKEN')
@@ -39,33 +38,26 @@ def download_media(message):
     msg = bot.reply_to(message, "جاري معالجة وتحميل المحتوى، انتظر لحظة...")
     
     filename = "video.mp4"
-    success = False
+    
+    # خيارات مخصصة لتجاوز حظر تيك توك عبر خداع السيرفر بخصائص متصفح حقيقي
+    ydl_opts = {
+        'format': 'best',
+        'outtmpl': filename,
+        'quiet': True,
+        'nocheckcertificate': True,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-us,en;q=0.5',
+            'Sec-Fetch-Mode': 'navigate',
+        }
+    }
 
     try:
-        # إذا كان الرابط تيك توك، نستخدم واجهة بديلة سريعة لتجاوز حظر السيرفرات
-        if "tiktok.com" in url:
-            api_url = f"https://tikwm.com/api/?url={url}"
-            res = requests.get(api_url).json()
-            if res.get("code") == 0:
-                video_url = res["data"]["play"]
-                video_data = requests.get(video_url).content
-                with open(filename, "wb") as f:
-                    f.write(video_data)
-                success = True
-        
-        # لباقي المنصات نستخدم YoutubeDL العادي
-        if not success:
-            ydl_opts = {
-                'format': 'best',
-                'outtmpl': filename,
-                'quiet': True,
-                'nocheckcertificate': True,
-            }
-            with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
-            success = True
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
 
-        if success and os.path.exists(filename):
+        if os.path.exists(filename):
             with open(filename, 'rb') as video:
                 bot.send_video(message.chat.id, video)
 
@@ -90,4 +82,7 @@ def callback_check(call):
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text="أنت جاهز الآن! أرسل لي أي رابط
+        text="أنت جاهز الآن! أرسل لي أي رابط (تيك توك، إنستجرام، يوتيوب) وسأقوم بتحميله لك فوراً."
+    )
+
+bot.infinity_polling()
