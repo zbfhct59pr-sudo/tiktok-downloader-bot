@@ -1,11 +1,6 @@
 import os
-import subprocess
-import sys
-
-# تحديث مكتبة yt-dlp تلقائياً لأحدث نسخة لتجاوز حماية تيك توك
-subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"])
-
 import telebot
+import requests
 from yt_dlp import YoutubeDL
 
 TOKEN = os.environ.get('BOT_TOKEN')
@@ -43,27 +38,42 @@ def download_media(message):
 
     msg = bot.reply_to(message, "جاري معالجة وتحميل المحتوى، انتظر لحظة...")
     
-    ydl_opts = {
-        'format': 'best',
-        'outtmpl': 'video.%(ext)s',
-        'quiet': True,
-        'nocheckcertificate': True,
-    }
+    filename = "video.mp4"
+    success = False
 
-    filename = None
     try:
-        with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
+        # إذا كان الرابط تيك توك، نستخدم واجهة بديلة سريعة لتجاوز حظر السيرفرات
+        if "tiktok.com" in url:
+            api_url = f"https://tikwm.com/api/?url={url}"
+            res = requests.get(api_url).json()
+            if res.get("code") == 0:
+                video_url = res["data"]["play"]
+                video_data = requests.get(video_url).content
+                with open(filename, "wb") as f:
+                    f.write(video_data)
+                success = True
+        
+        # لباقي المنصات نستخدم YoutubeDL العادي
+        if not success:
+            ydl_opts = {
+                'format': 'best',
+                'outtmpl': filename,
+                'quiet': True,
+                'nocheckcertificate': True,
+            }
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            success = True
 
-        with open(filename, 'rb') as video:
-            bot.send_video(message.chat.id, video)
+        if success and os.path.exists(filename):
+            with open(filename, 'rb') as video:
+                bot.send_video(message.chat.id, video)
 
     except Exception as e:
         bot.reply_to(message, f"حدث خطأ أثناء التحميل: {e}")
         
     finally:
-        if filename and os.path.exists(filename):
+        if os.path.exists(filename):
             try:
                 os.remove(filename)
             except:
@@ -80,7 +90,4 @@ def callback_check(call):
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        text="أنت جاهز الآن! أرسل لي أي رابط (تيك توك، إنستجرام، يوتيوب) وسأقوم بتحميله لك فوراً."
-    )
-
-bot.infinity_polling()
+        text="أنت جاهز الآن! أرسل لي أي رابط
