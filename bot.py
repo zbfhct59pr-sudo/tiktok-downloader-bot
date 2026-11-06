@@ -1,4 +1,10 @@
 import os
+import subprocess
+import sys
+
+# تحديث مكتبة yt-dlp تلقائياً لأحدث نسخة لتجاوز حماية تيك توك
+subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"])
+
 import telebot
 from yt_dlp import YoutubeDL
 
@@ -54,4 +60,27 @@ def download_media(message):
             bot.send_video(message.chat.id, video)
 
     except Exception as e:
-        bot.reply_to(message, f"حدث خطأ أثناء التحميل
+        bot.reply_to(message, f"حدث خطأ أثناء التحميل: {e}")
+        
+    finally:
+        if filename and os.path.exists(filename):
+            try:
+                os.remove(filename)
+            except:
+                pass
+        
+        try:
+            bot.delete_message(message.chat.id, msg.message_id)
+        except:
+            pass
+
+@bot.callback_query_handler(func=lambda call: call.data == "check_sub")
+def callback_check(call):
+    bot.answer_callback_query(call.id, "تم التحقق بنجاح! يمكنك الآن إرسال الروابط وتحميلها.")
+    bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text="أنت جاهز الآن! أرسل لي أي رابط (تيك توك، إنستجرام، يوتيوب) وسأقوم بتحميله لك فوراً."
+    )
+
+bot.infinity_polling()
