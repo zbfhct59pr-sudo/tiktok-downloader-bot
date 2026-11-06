@@ -39,7 +39,6 @@ def download_media(message):
     
     filename = "video.mp4"
     
-    # خيارات مخصصة لتجاوز حظر تيك توك عبر خداع السيرفر بخصائص متصفح حقيقي
     ydl_opts = {
         'format': 'best',
         'outtmpl': filename,
@@ -47,9 +46,6 @@ def download_media(message):
         'nocheckcertificate': True,
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-us,en;q=0.5',
-            'Sec-Fetch-Mode': 'navigate',
         }
     }
 
@@ -85,4 +81,5 @@ def callback_check(call):
         text="أنت جاهز الآن! أرسل لي أي رابط (تيك توك، إنستجرام، يوتيوب) وسأقوم بتحميله لك فوراً."
     )
 
-bot.infinity_polling()
+# تجاهل الطلبات والرسائل المعلقة السابقة لمنع أي خطأ تعارض
+bot.infinity_polling(skip_pending=True)
