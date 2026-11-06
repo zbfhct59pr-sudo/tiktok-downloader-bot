@@ -24,9 +24,11 @@ def download_tiktok(message):
         'outtmpl': 'video.%(ext)s',
         'quiet': True,
         'nocheckcertificate': True,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9',
+        'extractor_args': {
+            'tiktok': {
+                'app_version': ['30.4.0'],
+                'api_hostname': ['api16-normal-c-useast1a.tiktokv.com']
+            }
         },
     }
 
