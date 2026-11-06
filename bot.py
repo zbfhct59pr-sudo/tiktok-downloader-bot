@@ -5,58 +5,34 @@ from yt_dlp import YoutubeDL
 TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
-# معرف قناتك العامة كما هو
-CHANNEL_USERNAME = "@HI709H"
-CHANNEL_INVITE_LINK = "https://t.me/HI709H"
-
-def check_subscription(user_id):
-    try:
-        member = bot.get_chat_member(CHANNEL_USERNAME, user_id)
-        if member.status in ['member', 'administrator', 'creator']:
-            return True
-    except Exception as e:
-        print(f"Error checking subscription: {e}")
-    return False
+CHANNEL_INVITE_LINK = "https://t.me/+KB8JInbcu405ZDg8"
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    user_id = message.from_user.id
+    markup = telebot.types.InlineKeyboardMarkup()
+    btn_channel = telebot.types.InlineKeyboardButton("اضغط هنا للانضمام للقناة 🚀", url=CHANNEL_INVITE_LINK)
+    btn_check = telebot.types.InlineKeyboardButton("تحقق من انضمامك ✅", callback_data="check_sub")
+    markup.add(btn_channel)
+    markup.add(btn_check)
     
-    if not check_subscription(user_id):
-        markup = telebot.types.InlineKeyboardMarkup()
-        btn = telebot.types.InlineKeyboardButton("اشترك في القناة للمتابعة 🚀", url=CHANNEL_INVITE_LINK)
-        markup.add(btn)
-        
-        bot.send_message(
-            message.chat.id, 
-            f"عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت:\n\n{CHANNEL_USERNAME}",
-            reply_markup=markup
-        )
-        return
-
-    bot.reply_to(message, "أهلاً بك! أرسل لي رابط من تيك توك، إنستجرام، تويتر، أو يوتيوب وسأقوم بتحميله لك.")
+    bot.send_message(
+        message.chat.id, 
+        "أهلاً بك! لتحميل مقاطع الفيديو، يجب عليك الانضمام للقناة الخاصة أولاً.\n\nاضغط على زر الانضمام، ثم اضغط على زر التحقق بالأسفل:",
+        reply_markup=markup
+    )
 
 @bot.message_handler(func=lambda message: True)
 def download_media(message):
-    user_id = message.from_user.id
-    
-    if not check_subscription(user_id):
-        markup = telebot.types.InlineKeyboardMarkup()
-        btn = telebot.types.InlineKeyboardButton("اشترك في القناة للمتابعة 🚀", url=CHANNEL_INVITE_LINK)
-        markup.add(btn)
-        
-        bot.send_message(
-            message.chat.id, 
-            f"عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت:\n\n{CHANNEL_USERNAME}",
-            reply_markup=markup
-        )
-        return
-
     url = message.text.strip()
     
     supported_domains = ["tiktok.com", "instagram.com", "twitter.com", "x.com", "youtube.com", "youtu.be"]
     if not any(domain in url for domain in supported_domains):
-        bot.reply_to(message, "الرجاء إرسال رابط صحيح من تيك توك، إنستجرام، تويتر، أو يوتيوب!")
+        markup = telebot.types.InlineKeyboardMarkup()
+        btn_channel = telebot.types.InlineKeyboardButton("قناتنا الخاصة 🚀", url=CHANNEL_INVITE_LINK)
+        btn_check = telebot.types.InlineKeyboardButton("تحقق من انضمامك ✅", callback_data="check_sub")
+        markup.add(btn_channel, btn_check)
+        
+        bot.reply_to(message, "الرجاء الانضمام للقناة أولاً ثم إرسال الرابط الصحيح (تيك توك، انستجرام، إلخ).", reply_markup=markup)
         return
 
     msg = bot.reply_to(message, "جاري معالجة وتحميل المحتوى، انتظر لحظة...")
@@ -77,4 +53,11 @@ def download_media(message):
     filename = None
     try:
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract
+            info = ydl.extract_info(url, download=True)
+            filename = ydl.prepare_filename(info)
+
+        with open(filename, 'rb') as video:
+            bot.send_video(message.chat.id, video)
+
+    except Exception as e:
+        bot.reply_to(message, f"حدث خطأ أثناء التحميل: {
