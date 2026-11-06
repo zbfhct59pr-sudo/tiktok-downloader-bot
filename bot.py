@@ -5,17 +5,13 @@ from yt_dlp import YoutubeDL
 TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
-# ضع هنا رابط الدعوة الخاص بقناتك
-CHANNEL_INVITE_LINK = "https://t.me/+KB8JInbcu405ZDg8"
-
-# ضع هنا الآي دي الرقمي لقناتك الخاصة (يجب أن يبدأ بـ -100)
-# ملاحظة: إذا لم تضعه، سنستخدم رابط الدعوة المباشر ولكن الآي دي هو الأضمن للتحقق
-CHANNEL_CHAT_ID = -1002456789012  # <-- استبدل هذا الرقم بالآي دي الحقيقي لقناتك
+# معرف قناتك العامة كما هو
+CHANNEL_USERNAME = "@HI709H"
+CHANNEL_INVITE_LINK = "https://t.me/HI709H"
 
 def check_subscription(user_id):
     try:
-        # فحص الاشتراك باستخدام الآي دي الرقمي للقناة الخاصة
-        member = bot.get_chat_member(CHANNEL_CHAT_ID, user_id)
+        member = bot.get_chat_member(CHANNEL_USERNAME, user_id)
         if member.status in ['member', 'administrator', 'creator']:
             return True
     except Exception as e:
@@ -33,7 +29,7 @@ def send_welcome(message):
         
         bot.send_message(
             message.chat.id, 
-            "عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت.\n\nبعد الانضمام، أرسل الرابط مجدداً.",
+            f"عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت:\n\n{CHANNEL_USERNAME}",
             reply_markup=markup
         )
         return
@@ -51,7 +47,7 @@ def download_media(message):
         
         bot.send_message(
             message.chat.id, 
-            "عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت.",
+            f"عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت:\n\n{CHANNEL_USERNAME}",
             reply_markup=markup
         )
         return
@@ -81,25 +77,4 @@ def download_media(message):
     filename = None
     try:
         with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
-
-        with open(filename, 'rb') as video:
-            bot.send_video(message.chat.id, video)
-
-    except Exception as e:
-        bot.reply_to(message, f"حدث خطأ أثناء التحميل: {e}")
-        
-    finally:
-        if filename and os.path.exists(filename):
-            try:
-                os.remove(filename)
-            except:
-                pass
-        
-        try:
-            bot.delete_message(message.chat.id, msg.message_id)
-        except:
-            pass
-
-bot.infinity_polling()
+            info = ydl.extract
