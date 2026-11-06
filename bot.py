@@ -7,17 +7,19 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    bot.reply_to(message, "أهلاً بك! أرسل لي رابط فيديو تيك توك وسأقوم بتحميله لك.")
+    bot.reply_to(message, "أهلاً بك! أرسل لي رابط من تيك توك، إنستجرام، تويتر، أو يوتيوب وسأقوم بتحميله لك.")
 
 @bot.message_handler(func=lambda message: True)
-def download_tiktok(message):
+def download_media(message):
     url = message.text.strip()
     
-    if "tiktok.com" not in url:
-        bot.reply_to(message, "الرجاء إرسال رابط تيك توك صحيح!")
+    # التحقق البسيط من الروابط المدعومة
+    supported_domains = ["tiktok.com", "instagram.com", "twitter.com", "x.com", "youtube.com", "youtu.be"]
+    if not any(domain in url for domain in supported_domains):
+        bot.reply_to(message, "الرجاء إرسال رابط صحيح من تيك توك، إنستجرام، تويتر، أو يوتيوب!")
         return
 
-    msg = bot.reply_to(message, "جاري تحميل الفيديو، انتظر لحظة...")
+    msg = bot.reply_to(message, "جاري معالجة وتحميل المحتوى، انتظر لحظة...")
     
     ydl_opts = {
         'format': 'best',
@@ -32,6 +34,7 @@ def download_tiktok(message):
         },
     }
 
+    filename = None
     try:
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
@@ -40,15 +43,19 @@ def download_tiktok(message):
         with open(filename, 'rb') as video:
             bot.send_video(message.chat.id, video)
 
-        if os.path.exists(filename):
-            os.remove(filename)
-
     except Exception as e:
         bot.reply_to(message, f"حدث خطأ أثناء التحميل: {e}")
         
-    try:
-        bot.delete_message(message.chat.id, msg.message_id)
-    except:
-        pass
+    finally:
+        if filename and os.path.exists(filename):
+            try:
+                os.remove(filename)
+            except:
+                pass
+        
+        try:
+            bot.delete_message(message.chat.id, msg.message_id)
+        except:
+            pass
 
 bot.infinity_polling()
