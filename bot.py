@@ -5,15 +5,17 @@ from yt_dlp import YoutubeDL
 TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
-# رابط قناتك الخاص أو المعرف الرقمي الخاص بها
-# (ملاحظة: تأكد من إضافة البوت مشرفاً داخل القناة الخاصة ليتمكن من قراءة الأعضاء)
+# ضع هنا رابط الدعوة الخاص بقناتك
 CHANNEL_INVITE_LINK = "https://t.me/+KB8JInbcu405ZDg8"
-CHANNEL_TARGET = "@HI709H" # أو ضع الـ ID الرقمي مثل -100xxxxxxxxxx إذا وجدته
+
+# ضع هنا الآي دي الرقمي لقناتك الخاصة (يجب أن يبدأ بـ -100)
+# ملاحظة: إذا لم تضعه، سنستخدم رابط الدعوة المباشر ولكن الآي دي هو الأضمن للتحقق
+CHANNEL_CHAT_ID = -1002456789012  # <-- استبدل هذا الرقم بالآي دي الحقيقي لقناتك
 
 def check_subscription(user_id):
     try:
-        # فحص الاشتراك باستخدام المعرف أو اليوزر الحالي للقناة
-        member = bot.get_chat_member(CHANNEL_TARGET, user_id)
+        # فحص الاشتراك باستخدام الآي دي الرقمي للقناة الخاصة
+        member = bot.get_chat_member(CHANNEL_CHAT_ID, user_id)
         if member.status in ['member', 'administrator', 'creator']:
             return True
     except Exception as e:
@@ -26,12 +28,12 @@ def send_welcome(message):
     
     if not check_subscription(user_id):
         markup = telebot.types.InlineKeyboardMarkup()
-        btn = telebot.types.InlineKeyboardButton("اضغط هنا للاشتراك في القناة 🚀", url=CHANNEL_INVITE_LINK)
+        btn = telebot.types.InlineKeyboardButton("اشترك في القناة للمتابعة 🚀", url=CHANNEL_INVITE_LINK)
         markup.add(btn)
         
         bot.send_message(
             message.chat.id, 
-            "عذراً، لا يمكنك استخدام البوت إلا بعد الاشتراك في قناة البوت الرسمية.\n\nبعد الانضمام، أرسل /start مجدداً.",
+            "عذراً، يجب عليك الاشتراك في القناة أولاً لتتمكن من استخدام البوت.\n\nبعد الانضمام، أرسل الرابط مجدداً.",
             reply_markup=markup
         )
         return
